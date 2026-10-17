@@ -1,7 +1,9 @@
 // Central API client. All backend calls go through this file so we can
 // change the base URL, add auth headers, or swap fetch for axios in one place.
 
-const BASE = import.meta.env.VITE_API_URL || "/api";
+// const BASE = import.meta.env.VITE_API_URL || "/api";
+const BASE = "https://YOUR-RAILWAY-URL.up.railway.app/api"; // Hardcoded temporarily
+
 
 class ApiError extends Error {
   constructor(message, status, data) {
