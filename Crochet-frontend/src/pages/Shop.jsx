@@ -39,8 +39,8 @@ export default function Shop() {
       id: product.id,
       name: product.name,
       price: product.price,
-      image: product.image?.[0],
-      color: product.color?.[0] || "",
+      image: product.image,
+      color: product.color || "",
     });
     showToast("Added to your bag", `${product.name} — wrapped with care.`);
   };
