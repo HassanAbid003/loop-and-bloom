@@ -110,6 +110,19 @@ export async function archiveProduct(req, res, next) {
   }
 }
 
+// Add this to the bottom of adminController.js
+export async function deleteProductPermanently(req, res, next) {
+  try {
+    const product = await Product.findByIdAndDelete(req.params.id);
+    if (!product) {
+      res.status(404);
+      throw new Error("Product not found");
+    }
+    res.json({ message: "Product deleted successfully" });
+  } catch (err) {
+    next(err);
+  }
+}
 // ==========================================
 // SETTINGS (Added this section)
 // ==========================================

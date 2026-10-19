@@ -102,6 +102,11 @@ export const adminApi = {
       headers: { Authorization: `Bearer ${token}` },
     }),
 
+  deleteProductPermanently: (token, id) =>
+    api.delete(`/admin/products/${id}/permanent`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+
   // Site Settings (Announcement Bar)
   getSettings: (token) =>
     api.get("/admin/settings", {
