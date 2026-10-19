@@ -80,8 +80,11 @@ export async function createCheckoutSession(req, res, next) {
       mode: "payment",
       payment_method_types: ["card"],
       line_items: lineItems,
-      success_url: `${process.env.SUCCESS_URL}?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: process.env.CANCEL_URL,
+      // Add a fallback to the Netlify URL just in case Railway misses the variable
+      success_url: process.env.SUCCESS_URL 
+        ? `${process.env.SUCCESS_URL}?session_id={CHECKOUT_SESSION_ID}` 
+        : "https://vermilion-starship-73fed4.netlify.app/checkout/success?session_id={CHECKOUT_SESSION_ID}",
+      cancel_url: process.env.CANCEL_URL || "https://vermilion-starship-73fed4.netlify.app/cart",
       metadata: { orderId: order._id.toString() },
       customer_email: email || undefined,
     });
