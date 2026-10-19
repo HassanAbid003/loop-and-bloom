@@ -1,11 +1,8 @@
 import { stripe } from "../services/stripe.js";
 import Product from "../models/Product.js";
 import Order from "../models/Order.js";
+import mongoose from "mongoose"; // Added mongoose for ID validation
 
-/**
- * POST /api/checkout/session
- * Body: { items: [{ id, quantity }], email? }
- */
 export async function createCheckoutSession(req, res, next) {
   try {
     const { items, email } = req.body;
@@ -15,21 +12,30 @@ export async function createCheckoutSession(req, res, next) {
       throw new Error("Cart is empty");
     }
 
-    // 1) Fetch all products from DB — NEVER trust prices from client
-    const ids = items.map((i) => i.id);
+    // 1) Filter out any items that don't have a valid MongoDB ObjectId
+    // This prevents the server from crashing if the cart has old/bad data
+    const validItems = items.filter((i) => mongoose.Types.ObjectId.isValid(i.id));
+
+    if (validItems.length === 0) {
+      res.status(400);
+      throw new Error("No valid products in cart. Please clear your cart and try again.");
+    }
+
+    // 2) Fetch products from DB
+    const ids = validItems.map((i) => i.id);
     const dbProducts = await Product.find({ _id: { $in: ids }, status: "active" });
 
-    if (dbProducts.length !== items.length) {
+    if (dbProducts.length !== validItems.length) {
       res.status(400);
       throw new Error("One or more products are unavailable");
     }
 
-    // 2) Build line items + internal order items
+    // 3) Build line items + internal order items
     const lineItems = [];
     const orderItems = [];
     let subtotal = 0;
 
-    for (const item of items) {
+    for (const item of validItems) {
       const product = dbProducts.find((p) => p._id.toString() === item.id);
       if (!product) continue;
 
@@ -43,7 +49,7 @@ export async function createCheckoutSession(req, res, next) {
             description: product.description?.slice(0, 200),
             images: product.images?.slice(0, 1) || [],
           },
-          unit_amount: Math.round(product.price * 100), // Stripe wants cents
+          unit_amount: Math.round(product.price * 100),
         },
         quantity: qty,
       });
@@ -59,7 +65,7 @@ export async function createCheckoutSession(req, res, next) {
       subtotal += product.price * qty;
     }
 
-    // 3) Create the Order in DB with status "pending"
+    // 4) Create the Order
     const order = await Order.create({
       email: email || "pending@checkout.local",
       name: "Pending Checkout",
@@ -69,7 +75,7 @@ export async function createCheckoutSession(req, res, next) {
       status: "pending",
     });
 
-    // 4) Create Stripe Checkout Session
+    // 5) Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
@@ -80,7 +86,6 @@ export async function createCheckoutSession(req, res, next) {
       customer_email: email || undefined,
     });
 
-    // 5) Save Stripe session ID to the order
     order.stripeSessionId = session.id;
     await order.save();
 
@@ -90,14 +95,12 @@ export async function createCheckoutSession(req, res, next) {
       orderNumber: order.orderNumber,
     });
   } catch (err) {
+    // Log the exact error for Railway logs
+    console.error("❌ Checkout Error:", err.message);
     next(err);
   }
 }
 
-/**
- * GET /api/checkout/order/:sessionId
- * Used by the success page to show order details
- */
 export async function getOrderBySession(req, res, next) {
   try {
     const { sessionId } = req.params;

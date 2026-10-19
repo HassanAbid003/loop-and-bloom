@@ -1,5 +1,3 @@
-// const BASE = "https://loop-and-bloom-production.up.railway.app/api"; // Hardcoded temporarily
-
 // For local development, it uses Vite's proxy.
 // For production (Netlify), it uses your Railway URL.
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
@@ -61,7 +59,10 @@ export const productsApi = {
 export const checkoutApi = {
   createSession: (items, email) =>
     api.post("/checkout/session", {
-      items: items.map((i) => ({ id: i.id, quantity: i.qty || 1 })),
+      items: items.map((i) => ({ 
+        id: i.id || i._id, // Fallback to _id just in case the cart holds the raw DB object
+        quantity: i.qty || 1 
+      })),
       email,
     }),
   verify: (sessionId) => api.get(`/checkout/verify/${sessionId}`),
@@ -119,7 +120,7 @@ export const adminApi = {
 
     const res = await fetch(`${BASE}/admin/upload`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}` }, // No Content-Type! Fetch sets it automatically.
+      headers: { Authorization: `Bearer ${token}` },
       body: formData,
     });
 
