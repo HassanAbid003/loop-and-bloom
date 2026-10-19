@@ -1,8 +1,12 @@
 import { stripe } from "../services/stripe.js";
 import Product from "../models/Product.js";
 import Order from "../models/Order.js";
-import mongoose from "mongoose"; // Added mongoose for ID validation
+import mongoose from "mongoose";
 
+/**
+ * POST /api/checkout/session
+ * Body: { items: [{ id, quantity }], email? }
+ */
 export async function createCheckoutSession(req, res, next) {
   try {
     const { items, email } = req.body;
@@ -13,7 +17,6 @@ export async function createCheckoutSession(req, res, next) {
     }
 
     // 1) Filter out any items that don't have a valid MongoDB ObjectId
-    // This prevents the server from crashing if the cart has old/bad data
     const validItems = items.filter((i) => mongoose.Types.ObjectId.isValid(i.id));
 
     if (validItems.length === 0) {
@@ -76,15 +79,16 @@ export async function createCheckoutSession(req, res, next) {
     });
 
     // 5) Create Stripe Checkout Session
+    // Clean the URLs by trimming spaces (fixes invisible spaces in Railway variables)
+    const successBase = (process.env.SUCCESS_URL || "").trim() || "https://vermilion-starship-73fed4.netlify.app/checkout/success";
+    const cancelBase = (process.env.CANCEL_URL || "").trim() || "https://vermilion-starship-73fed4.netlify.app/checkout/cancel";
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       line_items: lineItems,
-      // Add a fallback to the Netlify URL just in case Railway misses the variable
-      success_url: process.env.SUCCESS_URL 
-        ? `${process.env.SUCCESS_URL}?session_id={CHECKOUT_SESSION_ID}` 
-        : "https://vermilion-starship-73fed4.netlify.app/checkout/success?session_id={CHECKOUT_SESSION_ID}",
-      cancel_url: process.env.CANCEL_URL || "https://vermilion-starship-73fed4.netlify.app/cart",
+      success_url: `${successBase}?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: cancelBase,
       metadata: { orderId: order._id.toString() },
       customer_email: email || undefined,
     });
@@ -98,12 +102,14 @@ export async function createCheckoutSession(req, res, next) {
       orderNumber: order.orderNumber,
     });
   } catch (err) {
-    // Log the exact error for Railway logs
     console.error("❌ Checkout Error:", err.message);
     next(err);
   }
 }
 
+/**
+ * GET /api/checkout/order/:sessionId
+ */
 export async function getOrderBySession(req, res, next) {
   try {
     const { sessionId } = req.params;
