@@ -26,7 +26,6 @@ const productSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: [0, "Price cannot be negative"],
-      // Store in dollars (6800 would be $68) — wait, let's use cents for consistency
     },
     compareAtPrice: {
       type: Number,
@@ -71,6 +70,11 @@ const productSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // New field for the admin "Hide" toggle (soft out-of-stock)
+    isHidden: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
@@ -79,7 +83,6 @@ const productSchema = new mongoose.Schema(
   }
 );
 
-// Auto-generate slug from name before save
 // Auto-generate slug from name before save
 productSchema.pre("validate", function () {
   if (this.name && !this.slug) {

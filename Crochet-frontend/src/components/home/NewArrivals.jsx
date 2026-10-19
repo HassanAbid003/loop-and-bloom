@@ -90,6 +90,7 @@ export default function NewArrivals() {
                   tag: product.tags?.[0] || "",
                   color: product.colors?.[0] || "",
                   stock: product.stock, 
+                  isHidden: product.isHidden,
                 }}
                 onAdd={handleAdd}
               />

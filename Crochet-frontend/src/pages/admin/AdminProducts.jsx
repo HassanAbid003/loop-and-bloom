@@ -223,10 +223,10 @@ export default function AdminProducts() {
                     {/* The Eye Toggle */}
                     <button 
                       onClick={() => handleToggleStatus(product._id)} 
-                      className={`transition-colors ${product.status === "active" ? "text-sage hover:text-sage/70" : "text-charcoal/40 hover:text-charcoal"}`} 
-                      title={product.status === "active" ? "Visible on site (click to hide)" : "Hidden from site (click to show)"}
+                      className={`transition-colors ${!product.isHidden ? "text-sage hover:text-sage/70" : "text-charcoal/40 hover:text-charcoal"}`} 
+                      title={!product.isHidden ? "Visible on site (click to hide)" : "Hidden from site (click to show)"}
                     >
-                      {product.status === "active" ? <FiEye className="w-4 h-4" /> : <FiEyeOff className="w-4 h-4" />}
+                      {!product.isHidden ? <FiEye className="w-4 h-4" /> : <FiEyeOff className="w-4 h-4" />}
                     </button>
 
                     <button onClick={() => handleDelete(product._id)} className="text-charcoal/50 hover:text-rose transition-colors" title="Delete Permanently">

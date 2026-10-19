@@ -132,8 +132,8 @@ export async function toggleProductStatus(req, res, next) {
       throw new Error("Product not found");
     }
     
-    // Toggle between active and draft
-    product.status = product.status === "active" ? "draft" : "active";
+    // Toggle the new isHidden boolean instead of status
+    product.isHidden = !product.isHidden;
     await product.save();
     
     res.json(product);
@@ -141,6 +141,7 @@ export async function toggleProductStatus(req, res, next) {
     next(err);
   }
 }
+
 // ==========================================
 // SETTINGS (Added this section)
 // ==========================================

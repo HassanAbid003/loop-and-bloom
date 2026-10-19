@@ -8,7 +8,7 @@ export default function ProductCard({ product, onAdd }) {
   const liked = isSaved(product.id);
   
   // Check if the product is out of stock
-  const isOutOfStock = product.stock <= 0;
+  const isOutOfStock = product.stock <= 0 || product.isHidden;
 
   const handleToggle = () => {
     if (!product.id) return;
