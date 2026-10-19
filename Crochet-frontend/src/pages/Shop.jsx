@@ -36,11 +36,11 @@ export default function Shop() {
 
   const handleAdd = (product) => {
     addItem({
-      id: product._id,
+      id: product.id,
       name: product.name,
       price: product.price,
-      image: product.images?.[0],
-      color: product.colors?.[0] || "",
+      image: product.image?.[0],
+      color: product.color?.[0] || "",
     });
     showToast("Added to your bag", `${product.name} — wrapped with care.`);
   };
@@ -88,13 +88,14 @@ export default function Shop() {
               <ProductCard
                 key={product._id}
                 product={{
-                  id: product.id,
+                  id: product._id,
                   name: product.name,
                   price: product.price,
                   image: product.images?.[0],
                   tag: product.tags?.[0] || "",
                   color: product.colors?.[0] || "",
                   stock: product.stock,
+                  isHidden: product.isHidden, // <-- Added this earlier
                 }}
                 onAdd={handleAdd}
               />

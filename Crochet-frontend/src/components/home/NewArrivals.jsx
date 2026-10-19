@@ -1,5 +1,3 @@
-
-
 import { useRef } from "react";
 import { Link } from "react-router-dom";
 import ProductCard from "../ui/ProductCard";
@@ -10,11 +8,9 @@ import { useUI } from "../../context/UIContext";
 import { useProducts } from "../../hooks/useProducts";
 import { useReveal } from "../../hooks/useReveal";
 
-// Fallback image if a product has no images in the DB
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1668072587819-7b393944b426?auto=format&fit=crop&w=900&q=85";
 
-// Safely pick the first image or return the fallback
 function pickImage(images) {
   return Array.isArray(images) && images.length > 0 && images[0]
     ? images[0]
@@ -27,11 +23,11 @@ export default function NewArrivals() {
   const sectionRef = useRef(null);
   useReveal(sectionRef);
 
-  // Fetch featured products from the backend API
   const { data, loading, error } = useProducts({ featured: "true", limit: 4 });
   const products = data?.products || [];
 
   const handleAdd = (product) => {
+    // We map the product correctly here
     addItem({
       id: product.id,
       name: product.name,
@@ -83,13 +79,13 @@ export default function NewArrivals() {
               <ProductCard
                 key={product._id}
                 product={{
-                  id: product.id,
+                  id: product._id,
                   name: product.name,
                   price: product.price,
                   image: pickImage(product.images),
                   tag: product.tags?.[0] || "",
                   color: product.colors?.[0] || "",
-                  stock: product.stock, 
+                  stock: product.stock,
                   isHidden: product.isHidden,
                 }}
                 onAdd={handleAdd}
