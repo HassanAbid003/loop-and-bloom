@@ -10,6 +10,7 @@ import WishlistDrawer from "./components/layout/WishlistDrawer";
 import AccountDrawer from "./components/layout/AccountDrawer";
 import MobileMenu from "./components/layout/MobileMenu";
 import Toast from "./components/layout/Toast";
+import ProtectedRoute from "./components/admin/ProtectedRoute";
 
 // Public Pages
 import Home from "./pages/Home";
@@ -62,11 +63,13 @@ function App() {
         <Route path="login" element={<AdminLogin />} />
 
         {/* Protected Admin pages (With sidebar layout) */}
-        <Route element={<AdminLayout />}>
-          <Route path="dashboard" element={<AdminDashboard />} />
-          <Route path="orders" element={<AdminOrders />} />
-          <Route path="products" element={<AdminProducts />} />
-          <Route path="settings" element={<AdminSettings />} />
+        <Route element={<ProtectedRoute />}>
+          <Route element={<AdminLayout />}>
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="products" element={<AdminProducts />} />
+            <Route path="settings" element={<AdminSettings />} />
+          </Route>
         </Route>
       </Route>
 
