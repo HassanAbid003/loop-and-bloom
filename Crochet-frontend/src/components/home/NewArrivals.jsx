@@ -1,4 +1,7 @@
+
+
 import { useRef } from "react";
+import { Link } from "react-router-dom";
 import ProductCard from "../ui/ProductCard";
 import ProductCardSkeleton from "../ui/ProductCardSkeleton";
 import Icon from "../ui/Icon";
@@ -40,8 +43,8 @@ export default function NewArrivals() {
   };
 
   return (
-    <section ref={sectionRef} id="shop" className="py-24 md:py-32 bg-cream">
-      <div className="max-w-[1600px] mx-auto px-8">
+    <section ref={sectionRef} id="shop" className="py-24 md:py-16 bg-cream">
+      <div className="max-w-[1300px] mx-auto px-8">
         <div className="text-center mb-16 reveal">
           <div className="flex items-center justify-center gap-4 mb-6">
             <span className="w-12 h-px bg-taupe" />
@@ -56,7 +59,7 @@ export default function NewArrivals() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Loading */}
           {loading &&
             Array.from({ length: 4 }).map((_, i) => (
@@ -93,14 +96,14 @@ export default function NewArrivals() {
         </div>
 
         <div className="text-center mt-16">
-          <a
-            href="/shop"
+          <Link
+            to="/shop"
             className="inline-flex items-center gap-3 text-xs tracking-widest uppercase
                        border border-charcoal px-8 py-4 hover:bg-charcoal hover:text-cream
                        transition-colors duration-300"
           >
             View all new arrivals <Icon name="arrow" size={16} />
-          </a>
+          </Link>
         </div>
       </div>
     </section>

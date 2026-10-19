@@ -8,8 +8,8 @@ export default function StorySection() {
   useReveal(ref);
 
   return (
-    <section ref={ref} id="story" className="py-24 md:py-32 bg-cream">
-      <div className="max-w-[1400px] mx-auto px-8 grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+    <section ref={ref} id="story" className="py-24 md:py-16 bg-ivory">
+      <div className="max-w-[1300px] mx-auto px-8 grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
         {/* Image collage */}
         <div className="relative reveal">
           <img

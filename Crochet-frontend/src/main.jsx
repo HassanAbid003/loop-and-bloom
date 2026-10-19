@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import { UIProvider } from "./context/UIContext.jsx";
 import { CartProvider } from "./context/CartContext.jsx";
 import { WishlistProvider } from "./context/WishlistContext.jsx";
+import { AdminAuthProvider } from "./context/AdminAuthContext.jsx"; // Add this
 import App from "./App.jsx";
 import "./index.css";
 
@@ -13,7 +14,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <UIProvider>
         <CartProvider>
           <WishlistProvider>
-            <App />
+            <AdminAuthProvider> {/* Wrap App here */}
+              <App />
+            </AdminAuthProvider>
           </WishlistProvider>
         </CartProvider>
       </UIProvider>

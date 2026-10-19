@@ -1,3 +1,6 @@
+
+
+
 import { Link } from 'react-router-dom'
 import { FiArrowRight } from 'react-icons/fi'
 import { image } from '../../assets/image'
@@ -29,8 +32,8 @@ const collections = [
 
 export default function CollectionsSection() {
   return (
-    <section id="collections" className="bg-ivory py-24">
-      <div className="max-w-[1600px] mx-auto px-8">
+    <section id="collections" className="bg-ivory py-20">
+      <div className="max-w-[1300px] mx-auto px-8">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-16 gap-6">
           <div>
             <div className="flex items-center gap-4 mb-6">
@@ -42,7 +45,7 @@ export default function CollectionsSection() {
             </h2>
           </div>
 
-          <Link to="/collections" className="btn-primary">
+          <Link to="/shop" className="btn-primary">
             Shop All Collections <FiArrowRight />
           </Link>
         </div>
@@ -51,7 +54,7 @@ export default function CollectionsSection() {
           {collections.map((c) => (
             <Link
               key={c.title}
-              to={`/collections/${c.title.toLowerCase()}`}
+              to={`/shop?category=${c.title}`}
               className={`group relative overflow-hidden ${c.span || ''}`}
             >
               <img

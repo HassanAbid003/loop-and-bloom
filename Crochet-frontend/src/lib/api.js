@@ -1,9 +1,8 @@
-// Central API client. All backend calls go through this file so we can
-// change the base URL, add auth headers, or swap fetch for axios in one place.
+// const BASE = "https://loop-and-bloom-production.up.railway.app/api"; // Hardcoded temporarily
 
-// const BASE = import.meta.env.VITE_API_URL || "/api";
-const BASE = "https://loop-and-bloom-production.up.railway.app/api"; // Hardcoded temporarily
-
+// For local development, it uses Vite's proxy.
+// For production (Netlify), it uses your Railway URL.
+const BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 class ApiError extends Error {
   constructor(message, status, data) {
@@ -14,14 +13,14 @@ class ApiError extends Error {
 }
 
 async function request(path, options = {}) {
-const res = await fetch(`${BASE}${path}`, {
-  cache: "no-store",
-  headers: {
-    "Content-Type": "application/json",
-    ...(options.headers || {}),
-  },
-  ...options,
-});
+  const res = await fetch(`${BASE}${path}`, {
+    cache: "no-store",
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+    ...options,
+  });
 
   const contentType = res.headers.get("content-type") || "";
   const data = contentType.includes("application/json")
@@ -39,15 +38,17 @@ const res = await fetch(`${BASE}${path}`, {
   return data;
 }
 
+// Base methods
 export const api = {
-  get: (path) => request(path),
-  post: (path, body) =>
-    request(path, { method: "POST", body: JSON.stringify(body) }),
-  patch: (path, body) =>
-    request(path, { method: "PATCH", body: JSON.stringify(body) }),
-  delete: (path) => request(path, { method: "DELETE" }),
+  get: (path, options = {}) => request(path, { method: "GET", ...options }),
+  post: (path, body, options = {}) =>
+    request(path, { method: "POST", body: JSON.stringify(body), ...options }),
+  patch: (path, body, options = {}) =>
+    request(path, { method: "PATCH", body: JSON.stringify(body), ...options }),
+  delete: (path, options = {}) => request(path, { method: "DELETE", ...options }),
 };
 
+// Public store API
 export const productsApi = {
   list: (params = {}) => {
     const qs = new URLSearchParams(params).toString();
@@ -63,5 +64,67 @@ export const checkoutApi = {
       items: items.map((i) => ({ id: i.id, quantity: i.qty || 1 })),
       email,
     }),
-  getOrder: (sessionId) => api.get(`/checkout/order/${sessionId}`),
+  verify: (sessionId) => api.get(`/checkout/verify/${sessionId}`),
+};
+
+// Admin API
+export const adminApi = {
+  login: (email, password) => api.post("/admin/login", { email, password }),
+  
+  getOrders: (token, status = "") =>
+    api.get(`/admin/orders${status ? `?status=${status}` : ""}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+    
+  updateOrder: (token, id, status) =>
+    api.patch(`/admin/orders/${id}`, { status }, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+    
+  getProducts: (token) =>
+    api.get("/admin/products", {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+    
+  createProduct: (token, product) =>
+    api.post("/admin/products", product, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+    
+  updateProduct: (token, id, product) =>
+    api.patch(`/admin/products/${id}`, product, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+    
+  deleteProduct: (token, id) =>
+    api.delete(`/admin/products/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+
+  // Site Settings (Announcement Bar)
+  getSettings: (token) =>
+    api.get("/admin/settings", {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+    
+  updateSettings: (token, settings) =>
+    api.patch("/admin/settings", settings, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+
+  // Special method for uploading files (uses FormData, not JSON)
+  uploadImage: async (token, file) => {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const res = await fetch(`${BASE}/admin/upload`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` }, // No Content-Type! Fetch sets it automatically.
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new ApiError(data.message || "Upload failed", res.status, data);
+    return data.url;
+  },
 };

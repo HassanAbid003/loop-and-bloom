@@ -4,7 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import compression from "compression";
-
+import adminRoutes from "./routes/adminRoutes.js";
 import { connectDB } from "./config/db.js";
 import { globalLimiter } from "./middleware/rateLimiter.js";
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
@@ -21,7 +21,7 @@ app.set("trust proxy", 1);
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "https://loop-and-bloom-omega.vercel.app",
+    origin: process.env.CLIENT_URL || "https://vermillion-starship-73fed4.netlify.app",
     credentials: true,
   })
 );
@@ -37,6 +37,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Rate limit
 app.use("/api", globalLimiter);
+// Admin routes (auth handled inside)
+app.use("/api/admin", adminRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {

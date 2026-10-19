@@ -1,4 +1,5 @@
 import Product from "../models/Product.js";
+import Settings from "../models/Settings.js"; // Added the Settings import
 
 /**
  * GET /api/products
@@ -77,6 +78,28 @@ export async function getProductById(req, res, next) {
       throw new Error("Product not found");
     }
     res.json(product);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * GET /api/products/settings
+ * Fetches public store settings (like the Announcement Bar text)
+ */
+export async function getPublicSettings(req, res, next) {
+  try {
+    let settings = await Settings.findOne();
+    if (!settings) {
+      // If no settings exist yet, create a default one
+      settings = await Settings.create({});
+    }
+    
+    res.json({
+      announcementLeft: settings.announcementLeft,
+      announcementCenter: settings.announcementCenter,
+      announcementActive: settings.announcementActive,
+    });
   } catch (err) {
     next(err);
   }
