@@ -110,7 +110,6 @@ export async function archiveProduct(req, res, next) {
   }
 }
 
-// Add this to the bottom of adminController.js
 export async function deleteProductPermanently(req, res, next) {
   try {
     const product = await Product.findByIdAndDelete(req.params.id);
@@ -132,7 +131,7 @@ export async function toggleProductStatus(req, res, next) {
       throw new Error("Product not found");
     }
     
-    // Toggle the new isHidden boolean instead of status
+    // Toggle the isHidden boolean instead of status
     product.isHidden = !product.isHidden;
     await product.save();
     
@@ -143,7 +142,7 @@ export async function toggleProductStatus(req, res, next) {
 }
 
 // ==========================================
-// SETTINGS (Added this section)
+// SETTINGS
 // ==========================================
 
 export async function getSettings(req, res, next) {
@@ -163,7 +162,6 @@ export async function updateSettings(req, res, next) {
     let settings = await Settings.findOne();
     if (!settings) settings = new Settings();
 
-    // Update only the fields provided
     Object.assign(settings, req.body);
     await settings.save();
 

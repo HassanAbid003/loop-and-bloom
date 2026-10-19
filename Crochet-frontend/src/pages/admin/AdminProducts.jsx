@@ -13,7 +13,6 @@ export default function AdminProducts() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Form State
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -103,7 +102,7 @@ export default function AdminProducts() {
   const handleToggleStatus = async (id) => {
     try {
       await adminApi.toggleProductStatus(token, id);
-      fetchProducts(); // Refresh the table
+      fetchProducts();
     } catch (err) {
       alert("Failed to toggle status: " + err.message);
     }
@@ -127,7 +126,6 @@ export default function AdminProducts() {
         </button>
       </div>
 
-      {/* Create / Edit Form */}
       {isFormOpen && (
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl border border-sand/60 shadow-sm space-y-4">
           <h2 className="font-serif text-2xl mb-4">{editingId ? "Edit Product" : "New Product"}</h2>
@@ -175,7 +173,6 @@ export default function AdminProducts() {
         </form>
       )}
 
-      {/* Product Table */}
       <div className="bg-white rounded-2xl border border-sand/60 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -191,7 +188,7 @@ export default function AdminProducts() {
             </thead>
             <tbody className="divide-y divide-sand/40">
               {products.map((product) => (
-                <tr key={product._id} className={`hover:bg-ivory/30 transition-colors ${product.status === 'archived' ? 'opacity-50' : ''}`}>
+                <tr key={product._id} className={`hover:bg-ivory/30 transition-colors ${product.isHidden ? 'opacity-60' : ''}`}>
                   <td className="px-6 py-4 flex items-center gap-4">
                     <img src={product.images?.[0]} alt="" className="w-10 h-12 object-cover rounded bg-sand" />
                     <span className="font-medium">{product.name}</span>
@@ -199,7 +196,6 @@ export default function AdminProducts() {
                   <td className="px-6 py-4 text-charcoal/60">{product.category}</td>
                   <td className="px-6 py-4 font-medium">${product.price}</td>
                   
-                  {/* Out of stock logic */}
                   <td className="px-6 py-4">
                     {product.stock <= 0 ? (
                       <span className="text-rose font-medium text-xs uppercase tracking-wider">Out of stock</span>
@@ -210,8 +206,8 @@ export default function AdminProducts() {
                   
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-medium uppercase tracking-wider
-                      ${product.status === "active" ? "bg-sage/10 text-sage" : "bg-sand text-charcoal/50"}`}>
-                      {product.status}
+                      ${!product.isHidden ? "bg-sage/10 text-sage" : "bg-sand text-charcoal/50"}`}>
+                      {!product.isHidden ? "Active" : "Hidden"}
                     </span>
                   </td>
                   
@@ -220,7 +216,6 @@ export default function AdminProducts() {
                       <FiEdit2 className="w-4 h-4" />
                     </button>
                     
-                    {/* The Eye Toggle */}
                     <button 
                       onClick={() => handleToggleStatus(product._id)} 
                       className={`transition-colors ${!product.isHidden ? "text-sage hover:text-sage/70" : "text-charcoal/40 hover:text-charcoal"}`} 

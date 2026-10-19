@@ -1,15 +1,10 @@
 import Product from "../models/Product.js";
-import Settings from "../models/Settings.js"; // Added the Settings import
+import Settings from "../models/Settings.js";
 
-/**
- * GET /api/products
- * Query: ?category=Bags&status=active&featured=true&search=tote&sort=price-asc&limit=20&page=1
- */
 export async function listProducts(req, res, next) {
   try {
     const {
       category,
-      status = "active",
       featured,
       search,
       sort = "createdAt-desc",
@@ -18,8 +13,11 @@ export async function listProducts(req, res, next) {
     } = req.query;
 
     const filter = {};
+    
+    // Always require status to be active for the public store
+    filter.status = "active"; 
+
     if (category) filter.category = category;
-    if (status) filter.status = status;
     if (featured === "true") filter.featured = true;
     if (search) filter.$text = { $search: search };
 
@@ -50,9 +48,6 @@ export async function listProducts(req, res, next) {
   }
 }
 
-/**
- * GET /api/products/:slug
- */
 export async function getProductBySlug(req, res, next) {
   try {
     const product = await Product.findOne({ slug: req.params.slug });
@@ -66,10 +61,6 @@ export async function getProductBySlug(req, res, next) {
   }
 }
 
-/**
- * GET /api/products/id/:id
- * (for admin — slug lookups are for public)
- */
 export async function getProductById(req, res, next) {
   try {
     const product = await Product.findById(req.params.id);
@@ -83,15 +74,10 @@ export async function getProductById(req, res, next) {
   }
 }
 
-/**
- * GET /api/products/settings
- * Fetches public store settings (like the Announcement Bar text)
- */
 export async function getPublicSettings(req, res, next) {
   try {
     let settings = await Settings.findOne();
     if (!settings) {
-      // If no settings exist yet, create a default one
       settings = await Settings.create({});
     }
     
