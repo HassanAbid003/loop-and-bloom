@@ -88,7 +88,7 @@ export default function Shop() {
               <ProductCard
                 key={product._id}
                 product={{
-                  id: product._id,
+                  id: product.id,
                   name: product.name,
                   price: product.price,
                   image: product.images?.[0],
