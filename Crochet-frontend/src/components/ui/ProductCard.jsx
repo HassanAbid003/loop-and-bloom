@@ -7,7 +7,7 @@ export default function ProductCard({ product, onAdd }) {
   const { showToast } = useUI();
   const liked = isSaved(product.id);
   
-  // Check if the product is out of stock
+  // Check if the product is out of stock OR hidden by admin
   const isOutOfStock = product.stock <= 0 || product.isHidden;
 
   const handleToggle = () => {
@@ -34,29 +34,29 @@ export default function ProductCard({ product, onAdd }) {
           src={product.image}
           alt={product.name}
           loading="lazy"
-          className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${isOutOfStock ? "blur-sm opacity-70" : ""}`}
+          className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${isOutOfStock ? "blur-md opacity-80" : ""}`}
         />
 
-        {/* Out of Stock Overlay */}
+        {/* Out of Stock Badge (Top Left) */}
         {isOutOfStock && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/20 z-10">
-            <span className="bg-charcoal text-cream px-4 py-2 text-xs tracking-widest uppercase font-medium shadow-lg">
-              Out of Stock
-            </span>
+          <div className="absolute top-4 left-4 bg-rose text-white px-4 py-2 text-[10px] tracking-[0.2em] uppercase font-medium z-10 shadow-sm">
+            Out of Stock
           </div>
         )}
 
+        {/* Regular Tag (Only show if NOT out of stock) */}
         {product.tag && !isOutOfStock && (
           <span className="absolute top-4 left-4 bg-cream text-charcoal text-[10px] tracking-[0.2em] uppercase px-3 py-1.5 z-10">
             {product.tag}
           </span>
         )}
 
+        {/* Wishlist Button (Always visible) */}
         <button
           onClick={handleToggle}
           aria-label={`${liked ? "Remove from" : "Save to"} wishlist: ${product.name}`}
           className={`absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center transition-colors z-20 ${
-            liked ? "bg-rose text-white" : "bg-cream/80 text-charcoal hover:bg-cream"
+            liked ? "bg-rose text-white" : "bg-cream/90 text-charcoal hover:bg-cream"
           }`}
         >
           <Icon name="heart" size={16} />
