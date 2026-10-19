@@ -94,6 +94,7 @@ export default function Shop() {
                   image: product.images?.[0],
                   tag: product.tags?.[0] || "",
                   color: product.colors?.[0] || "",
+                  stock: product.stock,
                 }}
                 onAdd={handleAdd}
               />

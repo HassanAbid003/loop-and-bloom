@@ -6,12 +6,12 @@ export default function ProductCard({ product, onAdd }) {
   const { isSaved, toggle } = useWishlist();
   const { showToast } = useUI();
   const liked = isSaved(product.id);
+  
+  // Check if the product is out of stock
+  const isOutOfStock = product.stock <= 0;
 
   const handleToggle = () => {
-    if (!product.id) {
-      console.warn("ProductCard: product.id is missing, cannot toggle wishlist", product);
-      return;
-    }
+    if (!product.id) return;
     const wasSaved = liked;
     toggle(product);
     showToast(
@@ -21,25 +21,33 @@ export default function ProductCard({ product, onAdd }) {
   };
 
   const handleAdd = () => {
-    if (!product.id) {
-      console.warn("ProductCard: product.id is missing, cannot add to cart", product);
-      return;
-    }
+    if (!product.id || isOutOfStock) return;
     onAdd(product);
   };
 
   return (
     <article className="group">
       <div className="relative aspect-[4/5] overflow-hidden bg-sand">
+        
+        {/* Image with conditional blur */}
         <img
           src={product.image}
           alt={product.name}
           loading="lazy"
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${isOutOfStock ? "blur-sm opacity-70" : ""}`}
         />
 
-        {product.tag && (
-          <span className="absolute top-4 left-4 bg-cream text-charcoal text-[10px] tracking-[0.2em] uppercase px-3 py-1.5">
+        {/* Out of Stock Overlay */}
+        {isOutOfStock && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/20 z-10">
+            <span className="bg-charcoal text-cream px-4 py-2 text-xs tracking-widest uppercase font-medium shadow-lg">
+              Out of Stock
+            </span>
+          </div>
+        )}
+
+        {product.tag && !isOutOfStock && (
+          <span className="absolute top-4 left-4 bg-cream text-charcoal text-[10px] tracking-[0.2em] uppercase px-3 py-1.5 z-10">
             {product.tag}
           </span>
         )}
@@ -47,21 +55,24 @@ export default function ProductCard({ product, onAdd }) {
         <button
           onClick={handleToggle}
           aria-label={`${liked ? "Remove from" : "Save to"} wishlist: ${product.name}`}
-          className={`absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+          className={`absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center transition-colors z-20 ${
             liked ? "bg-rose text-white" : "bg-cream/80 text-charcoal hover:bg-cream"
           }`}
         >
           <Icon name="heart" size={16} />
         </button>
 
-        <button
-          onClick={handleAdd}
-          className="absolute bottom-4 left-4 right-4 bg-charcoal text-cream py-3 text-xs tracking-widest uppercase
-                     opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0
-                     transition-all duration-300 flex items-center justify-center gap-2"
-        >
-          Quick add <Icon name="plus" size={14} />
-        </button>
+        {/* Quick add (Hidden if out of stock) */}
+        {!isOutOfStock && (
+          <button
+            onClick={handleAdd}
+            className="absolute bottom-4 left-4 right-4 bg-charcoal text-cream py-3 text-xs tracking-widest uppercase
+                       opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0
+                       transition-all duration-300 flex items-center justify-center gap-2 z-20"
+          >
+            Quick add <Icon name="plus" size={14} />
+          </button>
+        )}
       </div>
 
       <div className="pt-5 flex justify-between items-start gap-4">

@@ -123,6 +123,24 @@ export async function deleteProductPermanently(req, res, next) {
     next(err);
   }
 }
+
+export async function toggleProductStatus(req, res, next) {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      res.status(404);
+      throw new Error("Product not found");
+    }
+    
+    // Toggle between active and draft
+    product.status = product.status === "active" ? "draft" : "active";
+    await product.save();
+    
+    res.json(product);
+  } catch (err) {
+    next(err);
+  }
+}
 // ==========================================
 // SETTINGS (Added this section)
 // ==========================================

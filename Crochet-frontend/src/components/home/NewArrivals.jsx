@@ -89,6 +89,7 @@ export default function NewArrivals() {
                   image: pickImage(product.images),
                   tag: product.tags?.[0] || "",
                   color: product.colors?.[0] || "",
+                  stock: product.stock, 
                 }}
                 onAdd={handleAdd}
               />

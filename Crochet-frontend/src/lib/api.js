@@ -118,6 +118,11 @@ export const adminApi = {
       headers: { Authorization: `Bearer ${token}` },
     }),
 
+  toggleProductStatus: (token, id) =>
+    api.patch(`/admin/products/${id}/toggle`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+
   // Special method for uploading files (uses FormData, not JSON)
   uploadImage: async (token, file) => {
     const formData = new FormData();

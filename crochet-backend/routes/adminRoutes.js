@@ -14,6 +14,7 @@ import {
   getSettings,      // Added
   updateSettings,   // Added
   deleteProductPermanently,
+  toggleProductStatus,
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -39,6 +40,7 @@ router.post("/products", createProduct);
 router.patch("/products/:id", updateProduct);
 router.delete("/products/:id", archiveProduct);
 router.delete("/products/:id/permanent", deleteProductPermanently); // Hard delete (Add this)
+router.patch("/products/:id/toggle", toggleProductStatus);
 
 // Settings (Added these two routes)
 router.get("/settings", getSettings);

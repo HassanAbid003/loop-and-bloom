@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { FiEdit2, FiTrash2, FiArchive, FiPlus } from "react-icons/fi";
 import { useAdminAuth } from "../../context/AdminAuthContext";
 import { adminApi } from "../../lib/api";
+import { FiEdit2, FiTrash2, FiEye, FiEyeOff, FiPlus } from "react-icons/fi";
 
 const INITIAL_FORM = {
   name: "", price: "", category: "Bags", description: "", stock: 10, images: [""], status: "active"
@@ -90,16 +90,6 @@ export default function AdminProducts() {
     }
   };
 
-  const handleArchive = async (id) => {
-    if (!window.confirm("Archive this product? It will be hidden from the store.")) return;
-    try {
-      await adminApi.deleteProduct(token, id); // Soft delete
-      fetchProducts();
-    } catch (err) {
-      alert("Failed to archive: " + err.message);
-    }
-  };
-
   const handleDelete = async (id) => {
     if (!window.confirm("PERMANENTLY delete this product? This cannot be undone.")) return;
     try {
@@ -107,6 +97,15 @@ export default function AdminProducts() {
       fetchProducts();
     } catch (err) {
       alert("Failed to delete: " + err.message);
+    }
+  };
+
+  const handleToggleStatus = async (id) => {
+    try {
+      await adminApi.toggleProductStatus(token, id);
+      fetchProducts(); // Refresh the table
+    } catch (err) {
+      alert("Failed to toggle status: " + err.message);
     }
   };
 
@@ -220,11 +219,16 @@ export default function AdminProducts() {
                     <button onClick={() => handleOpenEdit(product)} className="text-charcoal/50 hover:text-charcoal transition-colors" title="Edit">
                       <FiEdit2 className="w-4 h-4" />
                     </button>
-                    {product.status !== "archived" && (
-                      <button onClick={() => handleArchive(product._id)} className="text-charcoal/50 hover:text-taupe transition-colors" title="Archive">
-                        <FiArchive className="w-4 h-4" />
-                      </button>
-                    )}
+                    
+                    {/* The Eye Toggle */}
+                    <button 
+                      onClick={() => handleToggleStatus(product._id)} 
+                      className={`transition-colors ${product.status === "active" ? "text-sage hover:text-sage/70" : "text-charcoal/40 hover:text-charcoal"}`} 
+                      title={product.status === "active" ? "Visible on site (click to hide)" : "Hidden from site (click to show)"}
+                    >
+                      {product.status === "active" ? <FiEye className="w-4 h-4" /> : <FiEyeOff className="w-4 h-4" />}
+                    </button>
+
                     <button onClick={() => handleDelete(product._id)} className="text-charcoal/50 hover:text-rose transition-colors" title="Delete Permanently">
                       <FiTrash2 className="w-4 h-4" />
                     </button>
