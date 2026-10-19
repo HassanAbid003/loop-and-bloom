@@ -187,8 +187,9 @@ export default function AdminProducts() {
               </tr>
             </thead>
             <tbody className="divide-y divide-sand/40">
+              {/* FIXED: Removed the opacity-60 from the row class */}
               {products.map((product) => (
-                <tr key={product._id} className={`hover:bg-ivory/30 transition-colors ${product.isHidden ? 'opacity-60' : ''}`}>
+                <tr key={product._id} className="hover:bg-ivory/30 transition-colors">
                   <td className="px-6 py-4 flex items-center gap-4">
                     <img src={product.images?.[0]} alt="" className="w-10 h-12 object-cover rounded bg-sand" />
                     <span className="font-medium">{product.name}</span>
