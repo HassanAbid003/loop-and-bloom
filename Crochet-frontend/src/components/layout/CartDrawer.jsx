@@ -15,7 +15,7 @@ export default function CartDrawer() {
   const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
   const hasFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
   const { token } = useUserAuth();
-  
+
   return (
     <>
       {/* Backdrop */}

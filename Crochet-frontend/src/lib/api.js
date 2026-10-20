@@ -1,4 +1,3 @@
-
 // For local development, it uses Vite's proxy.
 // For production (Netlify), it uses your Railway URL.
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
@@ -14,11 +13,11 @@ class ApiError extends Error {
 async function request(path, options = {}) {
   const res = await fetch(`${BASE}${path}`, {
     cache: "no-store",
+    ...options,
     headers: {
       "Content-Type": "application/json",
       ...(options.headers || {}),
     },
-    ...options,
   });
 
   const contentType = res.headers.get("content-type") || "";
@@ -66,8 +65,10 @@ export const checkoutApi = {
       })),
       email,
     }, {
-      // Send the token if the user is logged in
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
+      headers: {
+        "Content-Type": "application/json", // Force it here
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
     }),
   verify: (sessionId) => api.get(`/checkout/verify/${sessionId}`),
 };
@@ -81,7 +82,6 @@ export const authApi = {
     api.get("/auth/me", {
       headers: { Authorization: `Bearer ${token}` },
     }),
-  // Add this to fetch the order history
   getMyOrders: (token) =>
     api.get("/auth/my-orders", {
       headers: { Authorization: `Bearer ${token}` },
@@ -127,7 +127,6 @@ export const adminApi = {
       headers: { Authorization: `Bearer ${token}` },
     }),
 
-  // Site Settings (Announcement Bar)
   getSettings: (token) =>
     api.get("/admin/settings", {
       headers: { Authorization: `Bearer ${token}` },
@@ -143,7 +142,6 @@ export const adminApi = {
       headers: { Authorization: `Bearer ${token}` },
     }),
 
-  // Special method for uploading files (uses FormData, not JSON)
   uploadImage: async (token, file) => {
     const formData = new FormData();
     formData.append("image", file);
