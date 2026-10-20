@@ -14,9 +14,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <UIProvider>
         <CartProvider>
           <WishlistProvider>
-            <AdminAuthProvider> {/* Wrap App here */}
-              <App />
-            </AdminAuthProvider>
+            <UserAuthProvider>
+              <AdminAuthProvider> 
+                <App />
+              </AdminAuthProvider>
+            </UserAuthProvider> 
           </WishlistProvider>
         </CartProvider>
       </UIProvider>

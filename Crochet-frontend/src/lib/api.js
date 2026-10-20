@@ -139,3 +139,14 @@ export const adminApi = {
     return data.url;
   },
 };
+
+export const authApi = {
+  signup: (name, email, password) =>
+    api.post("/auth/signup", { name, email, password }),
+  login: (email, password) =>
+    api.post("/auth/login", { email, password }),
+  getMe: (token) =>
+    api.get("/auth/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+};

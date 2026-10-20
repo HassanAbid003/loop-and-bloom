@@ -11,6 +11,7 @@ import { notFound, errorHandler } from "./middleware/errorHandler.js";
 import productRoutes from "./routes/productRoutes.js";
 import checkoutRoutes from "./routes/checkoutRoutes.js";
 import webhookRoutes from "./routes/webhookRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 
 await connectDB();
 
@@ -52,6 +53,7 @@ app.get("/api/health", (req, res) => {
 // Routes
 app.use("/api/products", productRoutes);
 app.use("/api/checkout", checkoutRoutes);
+app.use("/api/auth", authRoutes);
 
 // 404 + error handlers (must be last)
 app.use(notFound);
