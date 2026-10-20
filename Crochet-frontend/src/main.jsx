@@ -4,7 +4,9 @@ import { BrowserRouter } from "react-router-dom";
 import { UIProvider } from "./context/UIContext.jsx";
 import { CartProvider } from "./context/CartContext.jsx";
 import { WishlistProvider } from "./context/WishlistContext.jsx";
-import { AdminAuthProvider } from "./context/AdminAuthContext.jsx"; // Add this
+import { AdminAuthProvider } from "./context/AdminAuthContext.jsx";
+import { UserAuthProvider } from "./context/UserAuthContext.jsx"; // <-- THIS is missing!
+
 import App from "./App.jsx";
 import "./index.css";
 
