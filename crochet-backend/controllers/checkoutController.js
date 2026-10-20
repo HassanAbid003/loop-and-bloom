@@ -2,11 +2,9 @@ import { stripe } from "../services/stripe.js";
 import Product from "../models/Product.js";
 import Order from "../models/Order.js";
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken"; 
 
-/**
- * POST /api/checkout/session
- * Body: { items: [{ id, quantity }], email? }
- */
+// POST /api/checkout/session
 export async function createCheckoutSession(req, res, next) {
   try {
     const { items, email } = req.body;
@@ -16,7 +14,20 @@ export async function createCheckoutSession(req, res, next) {
       throw new Error("Cart is empty");
     }
 
-    // 1) Filter out any items that don't have a valid MongoDB ObjectId
+    // 1) Extract the user ID from the token if they are logged in
+    let userId = null;
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      try {
+        const token = authHeader.split(" ")[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || "fallback_secret");
+        userId = decoded.id;
+      } catch (err) {
+        // Token invalid, continue as guest
+      }
+    }
+
+    // 2) Filter out any items that don't have a valid MongoDB ObjectId
     const validItems = items.filter((i) => mongoose.Types.ObjectId.isValid(i.id));
 
     if (validItems.length === 0) {
@@ -24,7 +35,7 @@ export async function createCheckoutSession(req, res, next) {
       throw new Error("No valid products in cart. Please clear your cart and try again.");
     }
 
-    // 2) Fetch products from DB
+    // 3) Fetch products from DB
     const ids = validItems.map((i) => i.id);
     const dbProducts = await Product.find({ _id: { $in: ids }, status: "active" });
 
@@ -33,7 +44,7 @@ export async function createCheckoutSession(req, res, next) {
       throw new Error("One or more products are unavailable");
     }
 
-    // 3) Build line items + internal order items
+    // 4) Build line items + internal order items
     const lineItems = [];
     const orderItems = [];
     let subtotal = 0;
@@ -68,8 +79,9 @@ export async function createCheckoutSession(req, res, next) {
       subtotal += product.price * qty;
     }
 
-    // 4) Create the Order
+    // 5) Create the Order (Attach the userId)
     const order = await Order.create({
+      user: userId, // <-- Added here
       email: email || "pending@checkout.local",
       name: "Pending Checkout",
       items: orderItems,
@@ -78,8 +90,7 @@ export async function createCheckoutSession(req, res, next) {
       status: "pending",
     });
 
-    // 5) Create Stripe Checkout Session
-    // Clean the URLs by trimming spaces (fixes invisible spaces in Railway variables)
+    // 6) Create Stripe Checkout Session
     const successBase = (process.env.SUCCESS_URL || "").trim() || "https://vermilion-starship-73fed4.netlify.app/checkout/success";
     const cancelBase = (process.env.CANCEL_URL || "").trim() || "https://vermilion-starship-73fed4.netlify.app/checkout/cancel";
 
@@ -106,9 +117,8 @@ export async function createCheckoutSession(req, res, next) {
   }
 }
 
-/**
- * GET /api/checkout/order/:sessionId
- */
+//GET /api/checkout/order/:sessionId
+
 export async function getOrderBySession(req, res, next) {
   try {
     const { sessionId } = req.params;

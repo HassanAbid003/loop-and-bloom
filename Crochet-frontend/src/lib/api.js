@@ -1,3 +1,4 @@
+
 // For local development, it uses Vite's proxy.
 // For production (Netlify), it uses your Railway URL.
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
@@ -57,15 +58,34 @@ export const productsApi = {
 };
 
 export const checkoutApi = {
-  createSession: (items, email) =>
+  createSession: (items, email, token) =>
     api.post("/checkout/session", {
       items: items.map((i) => ({ 
-        id: i.id || i._id, // Fallback to _id just in case the cart holds the raw DB object
+        id: i.id || i._id,
         quantity: i.qty || 1 
       })),
       email,
+    }, {
+      // Send the token if the user is logged in
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
     }),
   verify: (sessionId) => api.get(`/checkout/verify/${sessionId}`),
+};
+
+export const authApi = {
+  signup: (name, email, password) =>
+    api.post("/auth/signup", { name, email, password }),
+  login: (email, password) =>
+    api.post("/auth/login", { email, password }),
+  getMe: (token) =>
+    api.get("/auth/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  // Add this to fetch the order history
+  getMyOrders: (token) =>
+    api.get("/auth/my-orders", {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
 };
 
 // Admin API
@@ -138,15 +158,4 @@ export const adminApi = {
     if (!res.ok) throw new ApiError(data.message || "Upload failed", res.status, data);
     return data.url;
   },
-};
-
-export const authApi = {
-  signup: (name, email, password) =>
-    api.post("/auth/signup", { name, email, password }),
-  login: (email, password) =>
-    api.post("/auth/login", { email, password }),
-  getMe: (token) =>
-    api.get("/auth/me", {
-      headers: { Authorization: `Bearer ${token}` },
-    }),
 };

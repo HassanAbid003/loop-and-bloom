@@ -27,6 +27,8 @@ const orderSchema = new mongoose.Schema(
     shipping: { type: Number, default: 0 },
     tax: { type: Number, default: 0 },
     total: { type: Number, required: true },
+    
+    // Shipping Address
     shippingAddress: {
       line1: String,
       line2: String,
@@ -35,6 +37,14 @@ const orderSchema = new mongoose.Schema(
       postalCode: String,
       country: String,
     },
+
+    // User Reference (Logged-in customer)
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: false, // Optional, allows guest checkout
+    },
+
     stripeSessionId: { type: String, unique: true, sparse: true },
     stripePaymentIntent: { type: String, sparse: true },
     notes: { type: String },
@@ -43,7 +53,6 @@ const orderSchema = new mongoose.Schema(
 );
 
 // Auto-generate human-friendly order number: LB-2026-0001
-// Auto-generate human-friendly order number: LB-2026-0001
 orderSchema.pre("save", async function () {
   if (!this.orderNumber) {
     const year = new Date().getFullYear();
@@ -51,4 +60,5 @@ orderSchema.pre("save", async function () {
     this.orderNumber = `LB-${year}-${String(count + 1).padStart(4, "0")}`;
   }
 });
+
 export default mongoose.model("Order", orderSchema);

@@ -4,6 +4,7 @@ import { useCart } from "../../context/CartContext";
 import { useUI } from "../../context/UIContext";
 import { useState } from "react";
 import { checkoutApi } from "../../lib/api";
+import { useUserAuth } from "../../context/UserAuthContext";
 
 export default function CartDrawer() {
   const { items, subtotal, totalQty, setQty, removeItem } = useCart();
@@ -13,7 +14,8 @@ export default function CartDrawer() {
   const FREE_SHIPPING_THRESHOLD = 100;
   const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
   const hasFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
-
+  const { token } = useUserAuth();
+  
   return (
     <>
       {/* Backdrop */}
@@ -165,7 +167,7 @@ export default function CartDrawer() {
                 if (checkingOut) return;
                 setCheckingOut(true);
                 try {
-                  const res = await checkoutApi.createSession(items);
+                  const res = await checkoutApi.createSession(items, null, token);
                   if (res?.url) {
                     // Redirect to Stripe-hosted checkout
                     window.location.href = res.url;
