@@ -11,13 +11,16 @@ class ApiError extends Error {
 }
 
 async function request(path, options = {}) {
+  // Merge headers safely so we don't accidentally drop Content-Type or Authorization
+  const headers = {
+    "Content-Type": "application/json",
+    ...(options.headers || {}),
+  };
+
   const res = await fetch(`${BASE}${path}`, {
     cache: "no-store",
     ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
+    headers,
   });
 
   const contentType = res.headers.get("content-type") || "";
@@ -40,9 +43,17 @@ async function request(path, options = {}) {
 export const api = {
   get: (path, options = {}) => request(path, { method: "GET", ...options }),
   post: (path, body, options = {}) =>
-    request(path, { method: "POST", body: JSON.stringify(body), ...options }),
+    request(path, {
+      method: "POST",
+      body: body ? JSON.stringify(body) : undefined,
+      ...options,
+    }),
   patch: (path, body, options = {}) =>
-    request(path, { method: "PATCH", body: JSON.stringify(body), ...options }),
+    request(path, {
+      method: "PATCH",
+      body: body ? JSON.stringify(body) : undefined,
+      ...options,
+    }),
   delete: (path, options = {}) => request(path, { method: "DELETE", ...options }),
 };
 
@@ -57,19 +68,24 @@ export const productsApi = {
 };
 
 export const checkoutApi = {
-  createSession: (items, email, token) =>
-    api.post("/checkout/session", {
-      items: items.map((i) => ({ 
-        id: i.id || i._id,
-        quantity: i.qty || 1 
-      })),
-      email,
-    }, {
-      headers: {
-        "Content-Type": "application/json", // Force it here
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  createSession: (items, email, token) => {
+    // Safe fallback in case items is undefined
+    const safeItems = Array.isArray(items) ? items : [];
+    
+    return api.post(
+      "/checkout/session",
+      {
+        items: safeItems.map((i) => ({
+          id: i.id || i._id,
+          quantity: i.qty || 1,
+        })),
+        email: email || null,
       },
-    }),
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      }
+    );
+  },
   verify: (sessionId) => api.get(`/checkout/verify/${sessionId}`),
 };
 
@@ -91,32 +107,36 @@ export const authApi = {
 // Admin API
 export const adminApi = {
   login: (email, password) => api.post("/admin/login", { email, password }),
-  
+
   getOrders: (token, status = "") =>
     api.get(`/admin/orders${status ? `?status=${status}` : ""}`, {
       headers: { Authorization: `Bearer ${token}` },
     }),
-    
+
   updateOrder: (token, id, status) =>
-    api.patch(`/admin/orders/${id}`, { status }, {
-      headers: { Authorization: `Bearer ${token}` },
-    }),
-    
+    api.patch(
+      `/admin/orders/${id}`,
+      { status },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    ),
+
   getProducts: (token) =>
     api.get("/admin/products", {
       headers: { Authorization: `Bearer ${token}` },
     }),
-    
+
   createProduct: (token, product) =>
     api.post("/admin/products", product, {
       headers: { Authorization: `Bearer ${token}` },
     }),
-    
+
   updateProduct: (token, id, product) =>
     api.patch(`/admin/products/${id}`, product, {
       headers: { Authorization: `Bearer ${token}` },
     }),
-    
+
   deleteProduct: (token, id) =>
     api.delete(`/admin/products/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -131,17 +151,22 @@ export const adminApi = {
     api.get("/admin/settings", {
       headers: { Authorization: `Bearer ${token}` },
     }),
-    
+
   updateSettings: (token, settings) =>
     api.patch("/admin/settings", settings, {
       headers: { Authorization: `Bearer ${token}` },
     }),
 
   toggleProductStatus: (token, id) =>
-    api.patch(`/admin/products/${id}/toggle`, {}, {
-      headers: { Authorization: `Bearer ${token}` },
-    }),
+    api.patch(
+      `/admin/products/${id}/toggle`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    ),
 
+  // Special method for uploading files (uses FormData, not JSON)
   uploadImage: async (token, file) => {
     const formData = new FormData();
     formData.append("image", file);
