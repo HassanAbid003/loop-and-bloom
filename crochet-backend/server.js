@@ -12,6 +12,7 @@ import productRoutes from "./routes/productRoutes.js";
 import checkoutRoutes from "./routes/checkoutRoutes.js";
 import webhookRoutes from "./routes/webhookRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import cookieParser from "cookie-parser"; // Add this import
 
 await connectDB();
 
@@ -31,6 +32,8 @@ app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
 // ⚠️ Webhook MUST come before express.json() — Stripe needs the raw body
 app.use("/api/webhooks", webhookRoutes);
+
+app.use(cookieParser()); // <-- Add this BEFORE your routes
 
 // Body parsers (for everything else)
 app.use(express.json({ limit: "1mb" }));

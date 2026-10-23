@@ -1,20 +1,36 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { FiX, FiPlus, FiMinus, FiCheck, FiTrash2 } from "react-icons/fi";
 import { useCart } from "../../context/CartContext";
 import { useUI } from "../../context/UIContext";
 import { useState } from "react";
 import { checkoutApi } from "../../lib/api";
-import { useUserAuth } from "../../context/UserAuthContext";
 
 export default function CartDrawer() {
   const { items, subtotal, totalQty, setQty, removeItem } = useCart();
   const { cartOpen, closeCart } = useUI();
   const [checkingOut, setCheckingOut] = useState(false);
-  const navigate = useNavigate();
+  
   const FREE_SHIPPING_THRESHOLD = 100;
   const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
   const hasFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
-  const { token } = useUserAuth();
+
+  const handleCheckout = async () => {
+    if (checkingOut) return;
+    setCheckingOut(true);
+    try {
+      // We no longer pass the token! The backend reads the HttpOnly cookie automatically.
+      const res = await checkoutApi.createSession(items);
+      if (res?.url) {
+        window.location.href = res.url;
+      } else {
+        throw new Error("Stripe session missing URL");
+      }
+    } catch (err) {
+      console.error("Checkout failed:", err);
+      alert("Could not start checkout. Please try again.");
+      setCheckingOut(false);
+    }
+  };
 
   return (
     <>
@@ -163,23 +179,7 @@ export default function CartDrawer() {
               Taxes and shipping calculated at checkout
             </p>
             <button
-              onClick={async () => {
-                if (checkingOut) return;
-                setCheckingOut(true);
-                try {
-                  const res = await checkoutApi.createSession(items, null, token);
-                  if (res?.url) {
-                    // Redirect to Stripe-hosted checkout
-                    window.location.href = res.url;
-                  } else {
-                    throw new Error("Stripe session missing URL");
-                  }
-                } catch (err) {
-                  console.error("Checkout failed:", err);
-                  alert("Could not start checkout. Please try again.");
-                  setCheckingOut(false);
-                }
-              }}
+              onClick={handleCheckout}
               disabled={checkingOut}
               className="w-full bg-charcoal text-cream py-4 text-xs tracking-widest uppercase
                         hover:bg-taupe transition-colors disabled:opacity-60 disabled:cursor-wait"

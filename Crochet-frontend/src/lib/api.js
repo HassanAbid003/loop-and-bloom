@@ -11,7 +11,6 @@ class ApiError extends Error {
 }
 
 async function request(path, options = {}) {
-  // Merge headers safely so we don't accidentally drop Content-Type or Authorization
   const headers = {
     "Content-Type": "application/json",
     ...(options.headers || {}),
@@ -19,6 +18,7 @@ async function request(path, options = {}) {
 
   const res = await fetch(`${BASE}${path}`, {
     cache: "no-store",
+    credentials: "include", // <-- CRITICAL: This tells the browser to send the HttpOnly cookie
     ...options,
     headers,
   });
@@ -68,23 +68,16 @@ export const productsApi = {
 };
 
 export const checkoutApi = {
-  createSession: (items, email, token) => {
-    // Safe fallback in case items is undefined
+  createSession: (items, email) => {
     const safeItems = Array.isArray(items) ? items : [];
     
-    return api.post(
-      "/checkout/session",
-      {
-        items: safeItems.map((i) => ({
-          id: i.id || i._id,
-          quantity: i.qty || 1,
-        })),
-        email: email || null,
-      },
-      {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      }
-    );
+    return api.post("/checkout/session", {
+      items: safeItems.map((i) => ({
+        id: i.id || i._id,
+        quantity: i.qty || 1,
+      })),
+      email: email || null,
+    });
   },
   verify: (sessionId) => api.get(`/checkout/verify/${sessionId}`),
 };
@@ -94,14 +87,9 @@ export const authApi = {
     api.post("/auth/signup", { name, email, password }),
   login: (email, password) =>
     api.post("/auth/login", { email, password }),
-  getMe: (token) =>
-    api.get("/auth/me", {
-      headers: { Authorization: `Bearer ${token}` },
-    }),
-  getMyOrders: (token) =>
-    api.get("/auth/my-orders", {
-      headers: { Authorization: `Bearer ${token}` },
-    }),
+  logout: () => api.post("/auth/logout", {}),
+  getMe: () => api.get("/auth/me"),
+  getMyOrders: () => api.get("/auth/my-orders"),
 };
 
 // Admin API
@@ -166,7 +154,6 @@ export const adminApi = {
       }
     ),
 
-  // Special method for uploading files (uses FormData, not JSON)
   uploadImage: async (token, file) => {
     const formData = new FormData();
     formData.append("image", file);

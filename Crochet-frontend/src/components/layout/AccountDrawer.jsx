@@ -6,7 +6,9 @@ import { authApi } from "../../lib/api";
 
 export default function AccountDrawer() {
   const { accountOpen, closeAccount, showToast } = useUI();
-  const { user, token, login, logout, isAuthenticated } = useUserAuth();
+  
+  // REMOVED `token` from here
+  const { user, login, logout, isAuthenticated } = useUserAuth();
   
   // Auth State
   const [isSignup, setIsSignup] = useState(false);
@@ -20,16 +22,16 @@ export default function AccountDrawer() {
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
 
-  // Fetch orders when logged in and drawer opens
+  // Fetch orders when logged in and drawer opens (NO TOKEN ARGUMENT)
   useEffect(() => {
     if (isAuthenticated && accountOpen) {
       setOrdersLoading(true);
-      authApi.getMyOrders(token)
+      authApi.getMyOrders()
         .then((res) => setOrders(res.orders))
         .catch((err) => console.error(err))
         .finally(() => setOrdersLoading(false));
     }
-  }, [isAuthenticated, accountOpen, token]);
+  }, [isAuthenticated, accountOpen]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,7 +43,8 @@ export default function AccountDrawer() {
         ? await authApi.signup(name, email, password)
         : await authApi.login(email, password);
 
-      login(res.token, res.user);
+      // The backend now sets the cookie automatically. We just pass the user data.
+      login(res.user); 
       showToast("Welcome!", `Signed in as ${res.user.name}.`);
       
       setName("");
@@ -54,8 +57,8 @@ export default function AccountDrawer() {
     }
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout(); // logout clears the cookie on the backend
     showToast("Signed out", "You have been logged out.");
     closeAccount();
   };

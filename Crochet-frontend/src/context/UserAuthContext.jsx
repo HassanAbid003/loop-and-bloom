@@ -2,56 +2,48 @@ import { createContext, useContext, useState, useEffect } from "react";
 import { authApi } from "../lib/api";
 
 const UserAuthContext = createContext(null);
-const STORAGE_KEY = "loop-and-bloom-user-token";
 
 export function UserAuthProvider({ children }) {
-  const [token, setToken] = useState(() => localStorage.getItem(STORAGE_KEY) || null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // On load, if we have a token, fetch the user profile
+  // On mount, ask the backend if we are logged in (via the cookie)
   useEffect(() => {
-    async function loadUser() {
-      if (!token) {
-        setLoading(false);
-        return;
-      }
+    async function checkAuth() {
       try {
-        const res = await authApi.getMe(token);
+        const res = await authApi.getMe();
         setUser(res.user);
       } catch (err) {
-        console.error("Failed to load user", err);
-        // Token is invalid/expired — clear it
-        localStorage.removeItem(STORAGE_KEY);
-        setToken(null);
+        // Not logged in, no problem
+        setUser(null);
       } finally {
         setLoading(false);
       }
     }
-    loadUser();
-  }, [token]);
+    checkAuth();
+  }, []);
 
-  const login = (newToken, userData) => {
-    localStorage.setItem(STORAGE_KEY, newToken);
-    setToken(newToken);
+  const login = (userData) => {
     setUser(userData);
   };
 
-  const logout = () => {
-    localStorage.removeItem(STORAGE_KEY);
-    setToken(null);
+  const logout = async () => {
+    try {
+      await authApi.logout();
+    } catch (err) {
+      console.error(err);
+    }
     setUser(null);
   };
 
   return (
     <UserAuthContext.Provider
       value={{
-        token,
         user,
         loading,
         login,
         logout,
-        isAuthenticated: !!token,
+        isAuthenticated: !!user,
       }}
     >
       {children}

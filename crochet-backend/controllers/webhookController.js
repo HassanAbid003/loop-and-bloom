@@ -1,5 +1,6 @@
 import { stripe } from "../services/stripe.js";
 import Order from "../models/Order.js";
+import { sendOrderConfirmation } from "../services/emailService.js"; // <-- Added import
 
 export async function handleStripeWebhook(req, res) {
   const sig = req.headers["stripe-signature"];
@@ -28,6 +29,11 @@ export async function handleStripeWebhook(req, res) {
         const order = await Order.findById(orderId);
         if (!order) break;
 
+        // Prevent processing the same event twice (Stripe can send duplicates)
+        if (order.status === "paid") {
+          return res.json({ received: true, note: "already processed" });
+        }
+
         // Update order with real customer info from Stripe
         order.status = "paid";
         order.email = session.customer_details?.email || order.email;
@@ -37,7 +43,14 @@ export async function handleStripeWebhook(req, res) {
         await order.save();
 
         console.log(`✅ Order ${order.orderNumber} marked as PAID`);
-        // TODO (Message 5): send confirmation email here
+
+        // 📧 Send the confirmation email (fail silently if email fails)
+        try {
+          await sendOrderConfirmation(order);
+        } catch (emailErr) {
+          console.error("❌ Failed to send email:", emailErr.message);
+        }
+
         break;
       }
 

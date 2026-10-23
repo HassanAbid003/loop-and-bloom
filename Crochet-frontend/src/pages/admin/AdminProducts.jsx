@@ -4,7 +4,15 @@ import { adminApi } from "../../lib/api";
 import { FiEdit2, FiTrash2, FiEye, FiEyeOff, FiPlus } from "react-icons/fi";
 
 const INITIAL_FORM = {
-  name: "", price: "", category: "Bags", description: "", stock: 10, images: [""], status: "active"
+  name: "",
+  price: "",
+  category: "Bags",
+  description: "",
+  stock: 10,
+  images: [""],
+  status: "active",
+  tags: "",    // Added
+  colors: "",  // Added
 };
 
 export default function AdminProducts() {
@@ -64,16 +72,25 @@ export default function AdminProducts() {
       stock: product.stock,
       images: product.images?.length ? product.images : [""],
       status: product.status,
+      tags: product.tags?.join(", ") || "",       // Convert array to string for input
+      colors: product.colors?.join(", ") || "",   // Convert array to string for input
     });
     setIsFormOpen(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Convert comma-separated strings back into arrays
+    const tagsArray = formData.tags.split(",").map(t => t.trim()).filter(Boolean);
+    const colorsArray = formData.colors.split(",").map(c => c.trim()).filter(Boolean);
+
     const payload = {
       ...formData,
       price: Number(formData.price),
       stock: Number(formData.stock),
+      tags: tagsArray,
+      colors: colorsArray,
     };
 
     try {
@@ -88,6 +105,8 @@ export default function AdminProducts() {
       alert("Failed to save product: " + err.message);
     }
   };
+
+  
 
   const handleDelete = async (id) => {
     if (!window.confirm("PERMANENTLY delete this product? This cannot be undone.")) return;
@@ -146,6 +165,30 @@ export default function AdminProducts() {
               value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} />
           </div>
 
+          {/* Badge & Colors Inputs */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs uppercase tracking-widest text-charcoal/70 mb-2">Badge / Tag (comma separated)</label>
+              <input 
+                type="text"
+                placeholder="e.g. Bestseller, New, Only 3 left"
+                className="w-full border border-sand p-3 rounded-lg" 
+                value={formData.tags} 
+                onChange={e => setFormData({...formData, tags: e.target.value})} 
+              />
+            </div>
+            <div>
+              <label className="block text-xs uppercase tracking-widest text-charcoal/70 mb-2">Colors (comma separated)</label>
+              <input 
+                type="text"
+                placeholder="e.g. Rose, Sage, Oat"
+                className="w-full border border-sand p-3 rounded-lg" 
+                value={formData.colors} 
+                onChange={e => setFormData({...formData, colors: e.target.value})} 
+              />
+            </div>
+          </div>
+
           <div>
             <label className="block text-xs uppercase tracking-widest text-charcoal/70 mb-2">Product Image</label>
             <input 
@@ -187,7 +230,6 @@ export default function AdminProducts() {
               </tr>
             </thead>
             <tbody className="divide-y divide-sand/40">
-              {/* FIXED: Removed the opacity-60 from the row class */}
               {products.map((product) => (
                 <tr key={product._id} className="hover:bg-ivory/30 transition-colors">
                   <td className="px-6 py-4 flex items-center gap-4">
